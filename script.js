@@ -1,0 +1,19 @@
+const modal=document.getElementById('videoModal');const video=document.getElementById('projectVideo');const title=document.getElementById('modalTitle');const live=document.getElementById('liveSite');const close=document.getElementById('closeModal');let previousFocus=null;
+function openProject(project){const src=project.dataset.video;if(!src)return;previousFocus=document.activeElement;title.textContent=project.dataset.title||'Project';video.src=src;video.load();if(project.dataset.url){live.href=project.dataset.url;live.hidden=false}else{live.hidden=true;live.removeAttribute('href')}modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');close.focus();video.play().catch(()=>{});}
+function closeProject(){video.pause();video.removeAttribute('src');video.load();modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');previousFocus?.focus();}
+document.querySelectorAll('.project[data-video]').forEach(project=>{project.querySelector('.project-preview').addEventListener('click',()=>openProject(project));project.querySelector('.project-link').addEventListener('click',()=>openProject(project));});close.addEventListener('click',closeProject);modal.querySelector('[data-close]').addEventListener('click',closeProject);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('is-open'))closeProject();if(e.key==='Tab'&&modal.classList.contains('is-open')){const nodes=[close,video,...(live.hidden?[]:[live])];const i=nodes.indexOf(document.activeElement);if(e.shiftKey&&i===0){e.preventDefault();nodes[nodes.length-1].focus()}else if(!e.shiftKey&&i===nodes.length-1){e.preventDefault();nodes[0].focus()}}});
+const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');observer.unobserve(e.target)}}),{threshold:.13});document.querySelectorAll('.project').forEach((p,i)=>{p.style.transitionDelay=`${Math.min(i*110,500)}ms`;observer.observe(p)});
+const progress=document.getElementById('scrollProgress');let ticking=false;window.addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{const max=document.documentElement.scrollHeight-innerHeight;progress.style.width=(max>0?scrollY/max*100:0)+'%';ticking=false})},{passive:true});document.getElementById('year').textContent=new Date().getFullYear();const toggle=document.getElementById('menuToggle');const nav=document.getElementById('nav');toggle.addEventListener('click',()=>{const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));toggle.textContent=open?'✕':'☰'});nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.textContent='☰'}));
+
+// Animate headline character by character while retaining line breaks and italics.
+(function(){
+ const heading=document.querySelector('.letter-heading');if(!heading)return;
+ let index=0;
+ heading.querySelectorAll('.letter-line').forEach(line=>{
+  const html=line.innerHTML;const wrapper=document.createElement('div');wrapper.innerHTML=html;
+  const fragment=document.createDocumentFragment();
+  function appendText(text,parent){for(const char of text){const span=document.createElement('span');span.className=char===' '?'letter-space':'letter-char';if(char!==' '){span.textContent=char;span.style.setProperty('--letter-index',index++);}else span.textContent=' ';parent.appendChild(span)}}
+  for(const node of [...wrapper.childNodes]){if(node.nodeType===Node.TEXT_NODE)appendText(node.textContent,fragment);else if(node.nodeType===Node.ELEMENT_NODE){const el=document.createElement(node.tagName.toLowerCase());appendText(node.textContent,el);fragment.appendChild(el)}}
+  line.replaceChildren(fragment);
+ });
+})();
